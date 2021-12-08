@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 
-import { Command } from 'commander'
+import { Command } from 'commander';
 
 async function main() {
-  const program = new Command()
+  const program = new Command();
 
   program
     .argument('<function>', 'Function that you wanna call on MultiSigWallet contract')
@@ -12,13 +12,13 @@ async function main() {
       '-f, --function <name>',
       'Function that you wanna call on MultiSigWallet contract'
     )
-    .parse()
+    .parse();
       
-  const url = program.args
-  console.log(url)
-  const options = program.opts()
+  const url = program.args;
+  console.log(url);
+  const options = program.opts();
       
-  console.log(`url: ${url}, iteration: ${options.iteration}`)
+  console.log(`url: ${url}, iteration: ${options.iteration}`);
 }
 
 if (require.main === module) {

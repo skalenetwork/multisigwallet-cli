@@ -1,4 +1,8 @@
 node_modules
-bin/
-venv/
+bin
+venv
 .env
+genesis.json
+predeployed.json
+cache
+blockchain
