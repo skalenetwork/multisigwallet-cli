@@ -35,12 +35,12 @@ genesis = {
 
 
 def generate_genesis(allocations: dict = {}):
-    base_genesis_filename = os.path.join(os.path.dirname(__file__), '../data/base_genesis.json')
+    base_genesis_filename = os.path.join(os.path.dirname(__file__), '../genesis/base_genesis.json')
     with open(base_genesis_filename) as base_genesis_file:
         genesis = json.load(base_genesis_file)
         genesis['alloc'].update(allocations)
 
-    genesis_filename = os.path.join(os.path.dirname(__file__), '../data/genesis.json')
+    genesis_filename = os.path.join(os.path.dirname(__file__), '../genesis/genesis.json')
 
     with open(genesis_filename, 'w') as f:
         json.dump(genesis, f)

@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-
 import { Command } from 'commander';
 
 async function main() {
@@ -14,11 +13,11 @@ async function main() {
     )
     .parse();
       
-  const url = program.args;
-  console.log(url);
+  const args = program.args;
   const options = program.opts();
+  
       
-  console.log(`url: ${url}, iteration: ${options.iteration}`);
+  console.log(`url: ${args}, iteration: ${options.iteration}`);
 }
 
 if (require.main === module) {
