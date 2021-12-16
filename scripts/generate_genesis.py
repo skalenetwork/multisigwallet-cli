@@ -8,7 +8,7 @@ from marionette_predeployed import  UpgradeableMarionetteGenerator, MARIONETTE_A
 ORIGINATOR_ADDRESS = '0x77A26beF106bCcf4CAB41723736aa0206f94fe4B'
 PROXY_ADMIN_ADDRESS = '0xd200000000000000000000000000000000000000'
 MAINNET_OWNER_ADDRESS = '0xd200000000000000000000000000000000000001'
-SCHAIN_OWNER_ADDRESS = '0xD200000000000000000000000000000000000002'
+SCHAIN_OWNER_ADDRESS = MULTISIGWALLET_ADDRESS
 MESSAGE_PROXY_FOR_SCHAIN_ADDRESS = '0xd200000000000000000000000000000000000003'
 
 multisigwallet_generator = MultiSigWalletGenerator()
@@ -41,7 +41,6 @@ def generate_genesis(allocations: dict = {}):
         genesis['alloc'].update(allocations)
 
     genesis_filename = os.path.join(os.path.dirname(__file__), '../genesis/genesis.json')
-
     with open(genesis_filename, 'w') as f:
         json.dump(genesis, f)
 

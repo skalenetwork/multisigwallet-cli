@@ -3,6 +3,6 @@ bin
 venv
 .env
 genesis.json
-predeployed.json
 cache
 blockchain
+data/*
