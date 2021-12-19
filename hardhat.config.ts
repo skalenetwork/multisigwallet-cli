@@ -43,7 +43,7 @@ const config: HardhatUserConfig = {
   networks: {
     custom: {
       url: getCustomUrl(process.env.ENDPOINT),
-      accounts: getCustomPrivateKey(process.env.PRIVATE_KEY),
+      accounts: getCustomPrivateKey(process.env.PRIVATE_KEY_1),
       gasPrice: getGasPrice(process.env.GASPRICE)
     }
   }
