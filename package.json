@@ -1,15 +1,15 @@
 {
   "name": "multisigwallet-cli",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.0.1",
+  "main": "msig.js",
   "license": "MIT",
   "bin": {
-    "msig": "./bin/index.js"
+    "msig": "./bin/src/msig.js"
   },
   "scripts": {
     "build": "npx tsc && yarn chmod",
-    "chmod": "chmod u+x ./bin/index.js && chmod u+x ./scripts/generate_genesis.py && chmod u+x ./scripts/generate_abi.py",
-    "abi": "./scripts/generate_abi.py",
+    "chmod": "chmod u+x ./bin/src/msig.js && chmod u+x ./scripts/prepare.sh",
+    "prepare": "yarn build && sudo yarn link && ./scripts/prepare.sh",
     "genesis": "./scripts/generate_genesis.py",
     "init-geth": "geth --datadir blockchain init genesis/genesis.json",
     "run-geth": "geth --datadir blockchain --dev --http --mine --miner.threads 1"
@@ -17,6 +17,7 @@
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",
     "@typechain/hardhat": "^3.0.0",
+    "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.12",
     "commander": "^8.3.0",
     "dotenv": "^10.0.0",

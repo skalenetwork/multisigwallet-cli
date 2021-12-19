@@ -31,7 +31,7 @@ async function getMultiSigWallet(signer: ethers.Wallet) {
 }
 
 async function getAbi(filepath: string) {
-    const abiFileName = path.join(__dirname, filepath);
+    const abiFileName = path.join(__dirname, filepath).replace("bin/","");
     const abi = JSON.parse(await fs.readFile(abiFileName, "utf-8"));
     return abi;
 }
@@ -173,8 +173,7 @@ async function main() {
         .command('getOwners')
         .description('Returns list of owners.')
         .action(async () => {
-            const owners = await multiSigWallet.getOwners();
-            console.log(owners)
+            console.log(await multiSigWallet.getOwners())
         });
 
     program
@@ -182,11 +181,10 @@ async function main() {
         .argument('<transactionId>', "Just transaction id")
         .description('Returns array with owner addresses, which confirmed transaction.')
         .action(async (transactionId) => {
-            const confirmations = await multiSigWallet.getConfirmations(transactionId);
-            console.log(confirmations)
+            console.log(await multiSigWallet.getConfirmations(transactionId))
         });
 
-        program
+    program
         .command('getConfirmationCount')
         .argument('<transactionId>', "Just transaction id")
         .description('Returns number of confirmations of a transaction.')
@@ -205,7 +203,7 @@ async function main() {
     program
         .command('getTransactionIds')
         .argument('[transactionId]', "Transaction id")
-        .description('Returns list of transaction IDs in defined range.')
+        .description('Returns status of transactions.')
         .action(async (transactionId) => {
             const transactionCount = await multiSigWallet.transactionCount();
             const pending = (await multiSigWallet.getTransactionIds(0, transactionCount, true, false)).map((x) => x.toNumber());
@@ -228,9 +226,7 @@ async function main() {
                 console.table(transactions)
             } else {
                 console.table([transactions[transactionId]])
-
             }
-                
         });
 
     await program.parseAsync();
