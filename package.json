@@ -7,9 +7,9 @@
     "msig": "./bin/src/msig.js"
   },
   "scripts": {
+    "prepare": "yarn build && ./scripts/prepare.sh",
     "build": "npx tsc && yarn chmod",
     "chmod": "chmod u+x ./bin/src/msig.js && chmod u+x ./scripts/prepare.sh",
-    "prepare": "yarn build && sudo yarn link && ./scripts/prepare.sh",
     "genesis": "./scripts/generate_genesis.py",
     "init-geth": "geth --datadir blockchain init genesis/genesis.json",
     "run-geth": "geth --datadir blockchain --dev --http --mine --miner.threads 1"
