@@ -14,7 +14,7 @@ function camelToSnakeCase(str: string) {
 }
 
 async function getMarionette() {
-    const predeployed = await getAbi("../data/predeployed.json");
+    const predeployed = await getAbi("data/predeployed.json");
     return new ethers.Contract(
         predeployed["marionette_address"],
         predeployed["marionette_abi"]
@@ -22,7 +22,7 @@ async function getMarionette() {
 }
 
 async function getMultiSigWallet(signer: ethers.Wallet) {
-    const predeployed = await getAbi("../data/predeployed.json");
+    const predeployed = await getAbi("data/predeployed.json");
     return new ethers.Contract(
         predeployed["multi_sig_wallet_address"],
         predeployed["multi_sig_wallet_abi"],
@@ -31,20 +31,21 @@ async function getMultiSigWallet(signer: ethers.Wallet) {
 }
 
 async function getAbi(filepath: string) {
-    const abiFileName = path.join(__dirname, filepath).replace("bin/","");
+    const rootDir = path.resolve("./");
+    const abiFileName = path.join(rootDir, filepath);
     const abi = JSON.parse(await fs.readFile(abiFileName, "utf-8"));
     return abi;
 }
 
 async function getDestinationContract(contractName: string, options: OptionValues): Promise<Contract> {
-    const deployed = await getAbi("../data/" + process.env.ABI);
-    const predeployed = await getAbi("../data/predeployed.json");
     let destinationContractAddress: string;
     let destinationContractAbi: any;
     if (options.custom) {
+        const deployed = await getAbi("data/" + process.env.ABI);
         destinationContractAddress = deployed[`${camelToSnakeCase(contractName)}_address`];
         destinationContractAbi = deployed[`${camelToSnakeCase(contractName)}_abi`];
     } else {
+        const predeployed = await getAbi("data/predeployed.json");
         destinationContractAddress = predeployed[`${camelToSnakeCase(contractName)}_address`];
         destinationContractAbi = predeployed[`${camelToSnakeCase(contractName)}_abi`];
     }

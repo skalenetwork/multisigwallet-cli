@@ -3,13 +3,11 @@
   "version": "0.0.1",
   "main": "msig.js",
   "license": "MIT",
-  "bin": {
-    "msig": "./bin/src/msig.js"
-  },
   "scripts": {
     "prepare": "yarn build && ./scripts/prepare.sh",
-    "build": "npx tsc && yarn chmod",
+    "build": "npx tsc && yarn chmod && yarn symlink",
     "chmod": "chmod u+x ./bin/src/msig.js && chmod u+x ./scripts/prepare.sh",
+    "symlink": "cp bin/src/msig.js node_modules/.bin/msig",
     "genesis": "./scripts/generate_genesis.py",
     "init-geth": "geth --datadir blockchain init genesis/genesis.json",
     "run-geth": "geth --datadir blockchain --dev --http --mine --miner.threads 1"
