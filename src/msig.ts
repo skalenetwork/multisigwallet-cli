@@ -144,6 +144,29 @@ async function main() {
         });
 
     program
+        .command('submitTransactionWithData')
+        .argument('<contractAddress>', "Destination contract that you wanna call")
+        .argument('<data>', "Encoded data of function selector and params")
+        .description('Allows an owner to submit and confirm a transaction.')
+        .action(async (contractAddress, data) => {
+            let receipt: any;
+            receipt = await (await multiSigWallet.submitTransaction(
+                marionette.address,
+                0,
+                marionette.interface.encodeFunctionData(
+                    "execute",
+                    [
+                        contractAddress,
+                        0,
+                        data
+                    ]
+                ),
+                { gasLimit: 3000000 }
+            )).wait();
+            showLogs(receipt);
+        });
+
+    program
         .command('confirmTransaction')
         .argument('<transactionId>', "Just transaction id")
         .description('Allows an owner to confirm a transaction.')
@@ -168,13 +191,6 @@ async function main() {
         .action(async (transactionId) => {
             const receipt = await (await multiSigWallet.executeTransaction(transactionId, { gasLimit: 3000000 })).wait();
             showLogs(receipt);
-        });
-
-    program
-        .command('getOwners')
-        .description('Returns list of owners.')
-        .action(async () => {
-            console.log(await multiSigWallet.getOwners())
         });
 
     program
@@ -228,6 +244,13 @@ async function main() {
             } else {
                 console.table([transactions[transactionId]])
             }
+        });
+
+    program
+        .command('getOwners')
+        .description('Returns list of owners.')
+        .action(async () => {
+            console.log(await multiSigWallet.getOwners())
         });
 
     await program.parseAsync();
