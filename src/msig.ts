@@ -74,6 +74,29 @@ function showLogs(receipt: any) {
     console.log(`Tx hash: ${receipt.transactionHash}`)
 }
 
+const postOutgoingMessageAbi = [
+    {
+        "type": "function",
+        "name": "postOutgoingMessage",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+            {
+                "type": "bytes32",
+                "name": "targetChainHash"
+            },
+            {
+                "type": "address",
+                "name": "targetContract"
+            },
+            {
+                "type": "bytes",
+                "name": "data"
+            }
+        ],
+        "outputs": []
+    }
+]
 
 async function main() {
     const program = new Command();
@@ -102,6 +125,35 @@ async function main() {
 
     const marionette = await getMarionette();
     const multiSigWallet = await getMultiSigWallet(signer);
+
+    program
+        .command('encodeData')
+        .argument('<schainName>', "Destination schain name")
+        .argument('<contract>', "Destination contract that you wanna call")
+        .argument('<func>', "Function that you wanna call on the destination contract")
+        .argument('<params...>', "Arguments for the destination function that you wanna call on the contract")
+        .description('Returns encoded data for interaction with schain through gnosis safe on mainnet')
+        .action(async (schainName, contract, func, params) => {
+            const destinationContract = await getDestinationContract(contract, options);
+            const postOutgoingMessageInterface = new ethers.utils.Interface(postOutgoingMessageAbi);
+            const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
+            const encodedData = postOutgoingMessageInterface.encodeFunctionData(
+                "postOutgoingMessage",
+                [
+                    schainHash,
+                    marionette.address,
+                    ethers.utils.defaultAbiCoder.encode(["address", "uint", "bytes"], [
+                        destinationContract.address,
+                        0,
+                        destinationContract.interface.encodeFunctionData(
+                            func,
+                            params
+                        )
+                    ])
+                ]
+            );
+            console.log(encodedData)
+        });
 
     program
         .command('submitTransaction')
