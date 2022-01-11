@@ -74,30 +74,6 @@ function showLogs(receipt: any) {
     console.log(`Tx hash: ${receipt.transactionHash}`)
 }
 
-const postOutgoingMessageAbi = [
-    {
-        "type": "function",
-        "name": "postOutgoingMessage",
-        "constant": false,
-        "payable": false,
-        "inputs": [
-            {
-                "type": "bytes32",
-                "name": "targetChainHash"
-            },
-            {
-                "type": "address",
-                "name": "targetContract"
-            },
-            {
-                "type": "bytes",
-                "name": "data"
-            }
-        ],
-        "outputs": []
-    }
-]
-
 async function main() {
     const program = new Command();
 
@@ -135,7 +111,8 @@ async function main() {
         .description('Returns encoded data for interaction with schain through gnosis safe on mainnet')
         .action(async (schainName, contract, func, params) => {
             const destinationContract = await getDestinationContract(contract, options);
-            const postOutgoingMessageInterface = new ethers.utils.Interface(postOutgoingMessageAbi);
+            const postOutgoingMessageAbi = await getAbi("data/ima_mainnet.json");
+            const postOutgoingMessageInterface = new ethers.utils.Interface(postOutgoingMessageAbi["message_proxy_mainnet_abi"]);
             const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
             const encodedData = postOutgoingMessageInterface.encodeFunctionData(
                 "postOutgoingMessage",
