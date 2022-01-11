@@ -4,4 +4,4 @@ marionette-predeployed==0.0.1a3
 filestorage-predeployed==1.0.1.dev8
 deployment-controller-predeployed==1.0.0.dev2
 multisigwallet-predeployed==0.0.1a3
- predeployed-generator==0.0.1a2
+predeployed-generator==0.0.1a2
