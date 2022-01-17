@@ -84,14 +84,15 @@ async function main() {
             "--custom",
             "For custom abi, set filepath to ABI into .env"
         )
+        .allowUnknownOption()
         .parse()
 
-    const options = program.opts();
+    const globalOptions = program.opts();
 
-    const privateKey = process.env[`PRIVATE_KEY_${options.account}`];
+    const privateKey = process.env[`PRIVATE_KEY_${globalOptions.account}`];
     const endpoint = process.env.ENDPOINT;
 
-    if (!process.env.ABI && options.custom) {
+    if (!process.env.ABI && globalOptions.custom) {
         console.log("Set path to file with ABI and addresses to ABI environment variables");
         return;
     }
@@ -104,12 +105,56 @@ async function main() {
     const multiSigWallet = await getMultiSigWallet(signer);
 
     program
+        .command('encodeData')
+        .argument('<schainName>', "Destination schain name")
+        .argument('<contract>', "Destination contract that you wanna call")
+        .argument('<func>', "Function that you wanna call on the destination contract")
+        .argument('<params...>', "Arguments for the destination function that you wanna call on the contract")
+        .description('Returns encoded data for interaction with schain through gnosis safe on mainnet')
+        .action(async (schainName, contract, func, params) => {
+            const destinationContract = await getDestinationContract(contract, globalOptions);
+            const postOutgoingMessageAbi = await getAbi("data/ima_mainnet.json");
+            const postOutgoingMessageInterface = new ethers.utils.Interface(postOutgoingMessageAbi["message_proxy_mainnet_abi"]);
+            const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
+            const encodedData = postOutgoingMessageInterface.encodeFunctionData(
+                "postOutgoingMessage",
+                [
+                    schainHash,
+                    marionette.address,
+                    ethers.utils.defaultAbiCoder.encode(["address", "uint", "bytes"], [
+                        destinationContract.address,
+                        0,
+                        destinationContract.interface.encodeFunctionData(
+                            func,
+                            params
+                        )
+                    ])
+                ]
+            );
+            console.log(encodedData)
+        });
+
+    program
+        .command('recharge')
+        .argument('<amount>', "Amount of money in wei")
+        .description("Allows to recharge the balance of the MultiSigWallet contract")
+        .action(async (amount) => {
+            await signer.sendTransaction({
+                to: multiSigWallet.address,
+                value: ethers.utils.parseUnits(amount, "wei")
+            });
+            const multiSigWalletBalance = await provider.getBalance(multiSigWallet.address).then(res => res.toString());
+            console.log(`MultiSigWallet balance: ${multiSigWalletBalance} wei`)
+        });
+
+    program
         .command('submitTransaction')
         .argument('<contract>', "Destination contract that you wanna call")
         .argument('<func>', "Function that you wanna call on the destination contract")
         .argument('<params...>', "Arguments for the destination function that you wanna call on the contract")
+        .option('-w, --wei [amount]', "Amount of money in wei", "0")
         .description('Allows an owner to submit and confirm a transaction.')
-        .action(async (contract, func, params) => {
+        .action(async (contract, func, params, options) => {
             let receipt: any;
             if (contract == "MultiSigWallet") {
                 receipt = await (await multiSigWallet.submitTransaction(
@@ -121,16 +166,26 @@ async function main() {
                     ),
                     { gasLimit: 3000000 }
                 )).wait();
-            } else {
-                const destinationContract = await getDestinationContract(contract, options);
+            } else if (contract == "Marionette" && func == "sendEth") {
                 receipt = await (await multiSigWallet.submitTransaction(
                     marionette.address,
-                    0,
+                    params[1],
+                    marionette.interface.encodeFunctionData(
+                        func,
+                        params
+                    ),
+                    { gasLimit: 3000000 }
+                )).wait();
+            } else {
+                const destinationContract = await getDestinationContract(contract, globalOptions);
+                receipt = await (await multiSigWallet.submitTransaction(
+                    marionette.address,
+                    options.wei,
                     marionette.interface.encodeFunctionData(
                         "execute",
                         [
                             destinationContract.address,
-                            0,
+                            options.wei,
                             destinationContract.interface.encodeFunctionData(
                                 func,
                                 params
@@ -252,6 +307,15 @@ async function main() {
         .action(async () => {
             console.log(await multiSigWallet.getOwners())
         });
+
+    program
+        .command('getBalance')
+        .argument('<address>', "The address of which you wanna know the balance")
+        .description("Allows to return balance of the account or contract")
+        .action(async (address) => {
+            console.log(await provider.getBalance(address).then(res => res.toString()));
+        });
+
 
     await program.parseAsync();
 
