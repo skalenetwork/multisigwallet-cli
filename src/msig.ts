@@ -74,7 +74,6 @@ function showLogs(receipt: any) {
     console.log(`Tx hash: ${receipt.transactionHash}`)
 }
 
-
 async function main() {
     const program = new Command();
 
