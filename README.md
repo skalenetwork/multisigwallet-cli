@@ -138,7 +138,7 @@ npx msig isConfirmed [options] <transactionId>
 Returns the confirmation status of transactions. If transaction ID was provided, than execution will return only status for that transaction.
 
 Optional arguments:
--  `[transactionId>` - Transaction id
+-  `[transactionId]` - Transaction id
 
 ### GetOwners
 ```bash
