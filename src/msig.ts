@@ -201,7 +201,7 @@ async function main() {
         .command('submitTransactionWithData')
         .argument('<contractAddress>', "Destination contract that you wanna call")
         .argument('<data>', "Encoded data of function selector and params")
-        .description('Allows an owner to submit and confirm a transaction.')
+        .description('Allows an owner to submit and confirm a transaction with custom data.')
         .action(async (contractAddress, data) => {
             let receipt: any;
             receipt = await (await multiSigWallet.submitTransaction(
@@ -222,7 +222,7 @@ async function main() {
 
     program
         .command('confirmTransaction')
-        .argument('<transactionId>', "Just transaction id")
+        .argument('<transactionId>', "Transaction id")
         .description('Allows an owner to confirm a transaction.')
         .action(async (transactionId) => {
             const receipt = await (await multiSigWallet.confirmTransaction(transactionId, { gasLimit: 3000000 })).wait();
@@ -231,8 +231,8 @@ async function main() {
 
     program
         .command('revokeConfirmation')
-        .argument('<transactionId>', "Just transaction id")
-        .description('Allows an owner to confirm a transaction.')
+        .argument('<transactionId>', "Transaction id")
+        .description('Allows an owner to revoke a confirmation for a transaction.')
         .action(async (transactionId) => {
             const receipt = await (await multiSigWallet.revokeConfirmation(transactionId, { gasLimit: 3000000 })).wait();
             showLogs(receipt);
@@ -240,8 +240,8 @@ async function main() {
 
     program
         .command('executeTransaction')
-        .argument('<transactionId>', "Just transaction id")
-        .description('Allows anyone to execute a confirmed transaction.')
+        .argument('<transactionId>', "Transaction id")
+        .description('Allows you to execute a confirmed transaction.')
         .action(async (transactionId) => {
             const receipt = await (await multiSigWallet.executeTransaction(transactionId, { gasLimit: 3000000 })).wait();
             showLogs(receipt);
@@ -249,7 +249,7 @@ async function main() {
 
     program
         .command('getConfirmations')
-        .argument('<transactionId>', "Just transaction id")
+        .argument('<transactionId>', "Transaction id")
         .description('Returns array with owner addresses, which confirmed transaction.')
         .action(async (transactionId) => {
             console.log(await multiSigWallet.getConfirmations(transactionId))
@@ -257,7 +257,7 @@ async function main() {
 
     program
         .command('getConfirmationCount')
-        .argument('<transactionId>', "Just transaction id")
+        .argument('<transactionId>', "Transaction id")
         .description('Returns number of confirmations of a transaction.')
         .action(async (transactionId) => {
             console.log((await multiSigWallet.getConfirmationCount(transactionId)).toNumber());
@@ -265,7 +265,7 @@ async function main() {
 
     program
         .command('isConfirmed')
-        .argument('<transactionId>', "Just transaction id")
+        .argument('<transactionId>', "Transaction id")
         .description('Returns the confirmation status of a transaction.')
         .action(async (transactionId) => {
             console.log(await multiSigWallet.isConfirmed(transactionId));
@@ -310,7 +310,7 @@ async function main() {
     program
         .command('getBalance')
         .argument('<address>', "The address of which you wanna know the balance")
-        .description("Allows to return balance of the account or contract")
+        .description("Returns the balance of address.")
         .action(async (address) => {
             console.log(await provider.getBalance(address).then(res => res.toString()));
         });
