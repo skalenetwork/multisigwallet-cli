@@ -138,10 +138,10 @@ async function main() {
         .argument('<amount>', "Amount of money in wei")
         .description("Allows to recharge the balance of the MultiSigWallet contract")
         .action(async (amount) => {
-            await signer.sendTransaction({
+            await (await signer.sendTransaction({
                 to: multiSigWallet.address,
                 value: ethers.utils.parseUnits(amount, "wei")
-            });
+            })).wait();
             const multiSigWalletBalance = await provider.getBalance(multiSigWallet.address).then(res => res.toString());
             console.log(`MultiSigWallet balance: ${multiSigWalletBalance} wei`)
         });
