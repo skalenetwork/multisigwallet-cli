@@ -77,8 +77,7 @@ Required variables:
 Required arguments:
 
 -   `<contract>` - Name of the contract in pascal case
--   `<func>` - Name of the function that you wanna call on the destination 
-contract
+-   `<func>` - Name of the function that you wanna call on the destination contract
 
 Optional arguments:
 -   `[params...]` - Arguments for the destination function
