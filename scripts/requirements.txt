@@ -1,7 +1,8 @@
-ima-predeployed==1.0.0b12
-etherbase-predeployed==0.0.1a9
-marionette-predeployed==0.0.1a3
-filestorage-predeployed==1.0.1.dev8
-deployment-controller-predeployed==1.0.0.dev2
-multisigwallet-predeployed==0.0.1a3
-predeployed-generator==0.0.1a2
+ima-predeployed
+etherbase-predeployed
+marionette-predeployed
+filestorage-predeployed
+deployment-controller-predeployed
+multisigwallet-predeployed
+predeployed-generator
+eth-rlp==0.2.1

@@ -21,7 +21,10 @@ async function getMarionette() {
     );
 }
 
-async function getMultiSigWallet(signer: ethers.Wallet) {
+async function getMultiSigWallet(globalOptions: OptionValues) {
+    const privateKey = process.env[`PRIVATE_KEY_${globalOptions.account}`];
+    const provider = new ethers.providers.JsonRpcProvider(process.env.ENDPOINT);
+    const signer = new ethers.Wallet(privateKey).connect(provider);
     const predeployed = await getAbi("data/predeployed.json");
     return new ethers.Contract(
         predeployed["multi_sig_wallet_address"],
@@ -74,6 +77,26 @@ function showLogs(receipt: any) {
     console.log(`Tx hash: ${receipt.transactionHash}`)
 }
 
+async function getTypes(contractName: string, functionName: string, options: OptionValues) {
+    let destinationContractAbi: any;
+    if (options.custom) {
+        const deployed = await getAbi("data/" + process.env.ABI);
+        destinationContractAbi = deployed[`${camelToSnakeCase(contractName)}_abi`];
+    } else {
+        const predeployed = await getAbi("data/predeployed.json");
+        destinationContractAbi = predeployed[`${camelToSnakeCase(contractName)}_abi`];
+    }
+    const types: Array<string> = [];
+    for (let func of destinationContractAbi) {
+        if (func.name == functionName) {
+            for (let output of func.outputs) {
+                types.push(output.type);
+            }
+        }
+    }
+    return types;
+}
+
 async function main() {
     const program = new Command();
 
@@ -88,29 +111,20 @@ async function main() {
 
     const globalOptions = program.opts();
 
-    const privateKey = process.env[`PRIVATE_KEY_${globalOptions.account}`];
-    const endpoint = process.env.ENDPOINT;
-
     if (!process.env.ABI && globalOptions.custom) {
         console.log("Set path to file with ABI and addresses to ABI environment variables");
         return;
     }
-
-    const wallet = new ethers.Wallet(privateKey);
-    const provider = new ethers.providers.JsonRpcProvider(endpoint);
-    const signer = wallet.connect(provider);
-
-    const marionette = await getMarionette();
-    const multiSigWallet = await getMultiSigWallet(signer);
 
     program
         .command('encodeData')
         .argument('<schainName>', "Destination schain name")
         .argument('<contract>', "Destination contract that you wanna call")
         .argument('<func>', "Function that you wanna call on the destination contract")
-        .argument('<params...>', "Arguments for the destination function that you wanna call on the contract")
+        .argument('[params...]', "Arguments for the destination function that you wanna call on the contract")
         .description('Returns encoded data for interaction with schain through gnosis safe on mainnet')
         .action(async (schainName, contract, func, params) => {
+            const marionette = await getMarionette();
             const destinationContract = await getDestinationContract(contract, globalOptions);
             const postOutgoingMessageAbi = await getAbi("data/ima_mainnet.json");
             const postOutgoingMessageInterface = new ethers.utils.Interface(postOutgoingMessageAbi["message_proxy_mainnet_abi"]);
@@ -134,10 +148,45 @@ async function main() {
         });
 
     program
+        .command('call')
+        .argument('<contract>', "Destination contract that you wanna call")
+        .argument('<func>', "Function that you wanna call on the destination contract")
+        .argument('[params...]', "Arguments for the destination function that you wanna call on the contract")
+        .description("Returns the result of executing the transaction, using call.")
+        .action(async (contract, func, params) => {
+            const destinationContract = await getDestinationContract(contract, globalOptions);
+            const provider = new ethers.providers.JsonRpcProvider(process.env.ENDPOINT);
+            const result = (await provider.call({
+                to: destinationContract.address,
+                data: destinationContract.interface.encodeFunctionData(
+                    func,
+                    params
+                )
+              })).slice(2);
+            const types = await getTypes(contract, func, globalOptions);
+            for (let i = 0; i < types.length; i++) {
+                const slicedResult = "0x" + result.substring(i*64, (i+1)*64);
+                if (types[i] == "uint256") {
+                    console.log(Number(slicedResult));
+                } else if (types[i] == "address") {
+                    console.log("0x" + slicedResult.substring(26));
+                } else if (types[i] == "bool") {
+                    console.log(Boolean(slicedResult));
+                } else {
+                    console.log(slicedResult)
+                }
+            }
+        });
+
+    program
         .command('recharge')
         .argument('<amount>', "Amount of money in wei")
         .description("Allows to recharge the balance of the MultiSigWallet contract")
         .action(async (amount) => {
+            const privateKey = process.env[`PRIVATE_KEY_${globalOptions.account}`];
+            const provider = new ethers.providers.JsonRpcProvider(process.env.ENDPOINT);
+            const signer = new ethers.Wallet(privateKey).connect(provider);
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             await (await signer.sendTransaction({
                 to: multiSigWallet.address,
                 value: ethers.utils.parseUnits(amount, "wei")
@@ -150,10 +199,12 @@ async function main() {
         .command('submitTransaction')
         .argument('<contract>', "Destination contract that you wanna call")
         .argument('<func>', "Function that you wanna call on the destination contract")
-        .argument('<params...>', "Arguments for the destination function that you wanna call on the contract")
+        .argument('[params...]', "Arguments for the destination function that you wanna call on the contract")
         .option('-w, --wei [amount]', "Amount of money in wei", "0")
         .description('Allows an owner to submit and confirm a transaction.')
         .action(async (contract, func, params, options) => {
+            const marionette = await getMarionette();
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             let receipt: any;
             if (contract == "MultiSigWallet") {
                 receipt = await (await multiSigWallet.submitTransaction(
@@ -203,6 +254,8 @@ async function main() {
         .argument('<data>', "Encoded data of function selector and params")
         .description('Allows an owner to submit and confirm a transaction with custom data.')
         .action(async (contractAddress, data) => {
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
+            const marionette = await getMarionette();
             let receipt: any;
             receipt = await (await multiSigWallet.submitTransaction(
                 marionette.address,
@@ -225,6 +278,7 @@ async function main() {
         .argument('<transactionId>', "Transaction id")
         .description('Allows an owner to confirm a transaction.')
         .action(async (transactionId) => {
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             const receipt = await (await multiSigWallet.confirmTransaction(transactionId, { gasLimit: 3000000 })).wait();
             showLogs(receipt);
         });
@@ -234,6 +288,7 @@ async function main() {
         .argument('<transactionId>', "Transaction id")
         .description('Allows an owner to revoke a confirmation for a transaction.')
         .action(async (transactionId) => {
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             const receipt = await (await multiSigWallet.revokeConfirmation(transactionId, { gasLimit: 3000000 })).wait();
             showLogs(receipt);
         });
@@ -243,6 +298,7 @@ async function main() {
         .argument('<transactionId>', "Transaction id")
         .description('Allows you to execute a confirmed transaction.')
         .action(async (transactionId) => {
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             const receipt = await (await multiSigWallet.executeTransaction(transactionId, { gasLimit: 3000000 })).wait();
             showLogs(receipt);
         });
@@ -252,6 +308,7 @@ async function main() {
         .argument('<transactionId>', "Transaction id")
         .description('Returns array with owner addresses, which confirmed transaction.')
         .action(async (transactionId) => {
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             console.log(await multiSigWallet.getConfirmations(transactionId))
         });
 
@@ -260,6 +317,7 @@ async function main() {
         .argument('<transactionId>', "Transaction id")
         .description('Returns number of confirmations of a transaction.')
         .action(async (transactionId) => {
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             console.log((await multiSigWallet.getConfirmationCount(transactionId)).toNumber());
         });
 
@@ -268,6 +326,7 @@ async function main() {
         .argument('<transactionId>', "Transaction id")
         .description('Returns the confirmation status of a transaction.')
         .action(async (transactionId) => {
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             console.log(await multiSigWallet.isConfirmed(transactionId));
         });
 
@@ -276,6 +335,7 @@ async function main() {
         .argument('[transactionId]', "Transaction id")
         .description('Returns status of transactions.')
         .action(async (transactionId) => {
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             const transactionCount = await multiSigWallet.transactionCount();
             const pending = (await multiSigWallet.getTransactionIds(0, transactionCount, true, false)).map((x) => x.toNumber());
             const executed = (await multiSigWallet.getTransactionIds(0, transactionCount, false, true)).map((x) => x.toNumber());
@@ -304,6 +364,7 @@ async function main() {
         .command('getOwners')
         .description('Returns list of owners.')
         .action(async () => {
+            const multiSigWallet = await getMultiSigWallet(globalOptions);
             console.log(await multiSigWallet.getOwners())
         });
 
@@ -312,6 +373,7 @@ async function main() {
         .argument('<address>', "The address of which you wanna know the balance")
         .description("Returns the balance of address.")
         .action(async (address) => {
+            const provider = new ethers.providers.JsonRpcProvider(process.env.ENDPOINT);
             console.log(await provider.getBalance(address).then(res => res.toString()));
         });
 
