@@ -13,7 +13,7 @@
     "run-geth": "geth --datadir blockchain --dev --http --mine --miner.threads 1"
   },
   "dependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.3",
+    "@nomiclabs/hardhat-ethers": "^2.0.4",
     "@typechain/hardhat": "^3.0.0",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.12",
