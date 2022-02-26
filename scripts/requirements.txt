@@ -1,4 +1,4 @@
-ima-predeployed==1.0.0b12
+ima-predeployed==1.2.1
 etherbase-predeployed==0.0.1a9
 marionette-predeployed==0.0.1a3
 filestorage-predeployed==1.0.1.dev8
