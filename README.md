@@ -53,14 +53,14 @@ Optional arguments:
 npx msig recharge [options] <amount>
 ```
 
-Allows to recharge the balance of the MultiSigWallet contract
+Allows to recharge the sFUEL balance of the MultiSigWallet contract
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
 - `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
 
 Required arguments:
--  `<amount>` -     Amount of money in wei
+-  `<amount>` -     Amount of sFUEL in wei
 
 ### SubmitTransaction
 
@@ -204,27 +204,14 @@ Required variables:
 
 ### GetBalance
 ```bash
-npx msig getBalance [options]
+npx msig getBalance [options] <address>
 ```
 
-Returns the balance of address.
+Returns the sFUEL balance of address.
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
 - `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
 
 Required arguments:
-- `<address>` -     The address of which you wanna know the balance
-
-
-
-
-
-
-
-
-
-
-
-
-
+- `<address>` -     The address of which to return the sFUEL balance
