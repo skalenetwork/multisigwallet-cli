@@ -9,7 +9,7 @@ from marionette_predeployed import MARIONETTE_ADDRESS
 from multisigwallet_predeployed import MULTISIGWALLET_ADDRESS
 from etherbase_predeployed import ETHERBASE_ADDRESS
 from filestorage_predeployed import FILESTORAGE_ADDRESS
-from deployment_controller_predeployed import DEPLOYMENT_CONTROLLER_ADDRESS
+from config_controller_predeployed import CONFIG_CONTROLLER_ADDRESS
 from ima_predeployed.addresses import PROXY_ADMIN_ADDRESS, \
                             MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, \
                             KEY_STORAGE_ADDRESS, \
@@ -47,8 +47,8 @@ resources = {
     'filestorage_predeployed': {
         'FileStorage': FILESTORAGE_ADDRESS,
     },
-    'deployment_controller_predeployed': {
-        'DeploymentController': DEPLOYMENT_CONTROLLER_ADDRESS
+    'config_controller_predeployed': {
+        'ConfigController': CONFIG_CONTROLLER_ADDRESS
     }
 }
 
