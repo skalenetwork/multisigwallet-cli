@@ -171,7 +171,7 @@ async function main() {
                 } else if (types[i] == "address") {
                     console.log("0x" + slicedResult.substring(26));
                 } else if (types[i] == "bool") {
-                    console.log(Boolean(slicedResult));
+                    console.log(Boolean(Number(slicedResult)));
                 } else {
                     console.log(slicedResult)
                 }
