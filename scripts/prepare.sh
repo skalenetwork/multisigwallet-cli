@@ -1,28 +1,22 @@
 #!/usr/bin/env bash
 
 
-if [ $(python -V | cut -d ' ' -f 2) ] ; then
-    VERSION=$(python -V | cut -d ' ' -f 2)
-    MAJOR=$(echo ${VERSION::3} | cut -d '.' -f 1)
-    MINOR=$(echo ${VERSION::3} | cut -d '.' -f 2)
-    if [ $MAJOR = 3 ] && [ $MINOR -ge 7 ] ; then
-        python -m venv venv
-    else
-        echo "Setup failed. Requires: Python>=3.7"
-        exit 1
+function _create_venv {
+    ls /usr/bin/python* | grep "python$1" > /dev/null
+    if [ $? = 0 ] ; then
+        python$1 -m venv venv
     fi
-elif [ $(python3 -V | cut -d ' ' -f 2) ] ; then
-    VERSION=$(python3 -V | cut -d ' ' -f 2)
-    MAJOR=$(echo ${VERSION::3} | cut -d '.' -f 1)
-    MINOR=$(echo ${VERSION::3} | cut -d '.' -f 2)
-    if [ $MAJOR = 3 ] && [ $MINOR -ge 7 ] ; then
-        python3 -m venv venv
-    else
-        echo "Setup failed. Requires: Python>=3.7"
-        exit 1
-    fi
-else 
-    echo "Setup failed. Install: Python>=3.7"
+}
+
+versions=('3.7' '3.9' '3.8' '3.10')
+
+for version in ${versions[@]}
+do
+    _create_venv $version
+done
+
+if [ ! -d "venv/" ] ; then
+    echo "Setup failed. Unsupported version Python."
     exit 1
 fi
 
