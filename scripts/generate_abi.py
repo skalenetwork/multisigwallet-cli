@@ -19,7 +19,8 @@ from ima_predeployed.addresses import PROXY_ADMIN_ADDRESS, \
                             TOKEN_MANAGER_ERC20_ADDRESS, \
                             TOKEN_MANAGER_ERC721_ADDRESS, \
                             TOKEN_MANAGER_ERC1155_ADDRESS, \
-                            TOKEN_MANAGER_LINKER_ADDRESS
+                            TOKEN_MANAGER_LINKER_ADDRESS, \
+                            TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS
 
 
 resources = {
@@ -33,7 +34,8 @@ resources = {
         'TokenManagerERC20': TOKEN_MANAGER_ERC20_ADDRESS,
         'TokenManagerERC721': TOKEN_MANAGER_ERC721_ADDRESS,
         'TokenManagerERC1155': TOKEN_MANAGER_ERC1155_ADDRESS,
-        'TokenManagerLinker': TOKEN_MANAGER_LINKER_ADDRESS
+        'TokenManagerLinker': TOKEN_MANAGER_LINKER_ADDRESS,
+        'TokenManagerERC721WithMetadata': TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS
     },
     'marionette_predeployed': {
         'Marionette': MARIONETTE_ADDRESS,
