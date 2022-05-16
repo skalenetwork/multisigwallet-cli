@@ -21,6 +21,7 @@ if [ ! -d "venv/" ] ; then
 fi
 
 source venv/bin/activate
+python3 -m pip install wheel
 python3 -m pip install -r scripts/requirements.txt
 python3 scripts/generate_abi.py
 git clone https://github.com/skalenetwork/skale-network.git
