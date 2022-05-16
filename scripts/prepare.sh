@@ -21,7 +21,7 @@ if [ ! -d "venv/" ] ; then
 fi
 
 source venv/bin/activate
-pip install -r scripts/requirements.txt
+python3 -m pip install -r scripts/requirements.txt
 python scripts/generate_abi.py
 git clone https://github.com/skalenetwork/skale-network.git
 STABLE_IMA_VERSION=$(ls skale-network/releases/mainnet/IMA/ | sort -r | head -n 1)
