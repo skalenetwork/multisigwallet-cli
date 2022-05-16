@@ -8,7 +8,7 @@ function _create_venv {
     fi
 }
 
-versions=('3.7' '3.9' '3.8' '3.10')
+versions=('3.7' '3.8' '3.9' '3.10')
 
 for version in ${versions[@]}
 do
@@ -23,4 +23,7 @@ fi
 source venv/bin/activate
 pip install -r scripts/requirements.txt
 python scripts/generate_abi.py
-wget -O ./data/ima_mainnet.json https://raw.githubusercontent.com/skalenetwork/skale-network/master/releases/mainnet/IMA/1.1.0/abi.json
+git clone https://github.com/skalenetwork/skale-network.git
+STABLE_IMA_VERSION=$(ls skale-network/releases/mainnet/IMA/ | sort -r | head -n 1)
+cp skale-network/releases/mainnet/IMA/$STABLE_IMA_VERSION/mainnet/abi.json data/abi.json
+rm -r --interactive=never skale-network/
