@@ -154,22 +154,15 @@ async function main() {
         .argument('[params...]', "Arguments for the destination function that you wanna call on the contract")
         .description('Returns encoded data for interaction with schain through gnosis safe on mainnet')
         .action(async (contract, func, params) => {
-            const marionette = await getMarionette();
+            // const marionette = await getMarionette();
             const destinationContract = await getDestinationContract(contract, globalOptions);
             // const postOutgoingMessageAbi = await getAbi("data/ima_mainnet.json");
             const predeployed = await getAbi("data/predeployed.json");
-            const marionetteInterface = new ethers.utils.Interface(predeployed["marionette_abi"]);
+            // const marionetteInterface = new ethers.utils.Interface(predeployed["marionette_abi"]);
             // const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
-            const encodedData = marionetteInterface.encodeFunctionData(
-                "execute",
-                [
-                    destinationContract.address,
-                    0,
-                    destinationContract.interface.encodeFunctionData(
-                        func,
-                        params
-                    )
-                ]
+            const encodedData = destinationContract.interface.encodeFunctionData(
+                 func,
+                 params
             );
             console.log(encodedData)
         });
