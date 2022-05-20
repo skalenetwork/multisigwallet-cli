@@ -147,6 +147,22 @@ async function main() {
             console.log(encodedData)
         });
 
+        program
+        .command('encodeDataWithoutIMA')
+        .argument('<contract>', "Destination contract that you wanna call")
+        .argument('<func>', "Function that you wanna call on the destination contract")
+        .argument('[params...]', "Arguments for the destination function that you wanna call on the contract")
+        .description('Returns encoded data for interaction with schain through gnosis safe on mainnet')
+        .action(async (contract, func, params) => {
+            const destinationContract = await getDestinationContract(contract, globalOptions);
+            const predeployed = await getAbi("data/predeployed.json");
+            const encodedData = destinationContract.interface.encodeFunctionData(
+                 func,
+                 params
+            );
+            console.log(encodedData)
+        });
+
     program
         .command('call')
         .argument('<contract>', "Destination contract that you wanna call")
