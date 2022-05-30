@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=$(cat VERSION)
+VERSION=$(cat package.json | grep "version" | cut -d '"' -f 4)
 USAGE_MSG='Usage: BRANCH=[BRANCH] calculate_version.sh'
 
 if [ -z "$BRANCH" ]
