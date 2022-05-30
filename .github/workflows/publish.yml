@@ -1,0 +1,43 @@
+name: Publish
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+      - develop
+      - beta
+      - stable
+
+jobs:
+  build:
+    name: Upload Release
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7 
+      - name: Build
+        run: |
+          export BRANCH=${GITHUB_REF##*/}
+          echo "Branch $BRANCH"
+          export VERSION=$(bash ./scripts/calculate_version.sh)
+          echo "Version $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          ( test $BRANCH = "stable" || test $BRANCH = "master" && export PRERELEASE=false ) || export PRERELEASE=true
+          echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
+          bash ./scripts/prepare.sh
+          zip -r multisigwallet-cli.zip .
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          draft: false
+          prerelease: ${{ env.PRERELEASE }}
+          files: multisigwallet-cli.zip

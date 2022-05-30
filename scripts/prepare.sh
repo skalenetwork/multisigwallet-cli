@@ -28,3 +28,4 @@ git clone https://github.com/skalenetwork/skale-network.git
 STABLE_IMA_VERSION=$(ls skale-network/releases/mainnet/IMA/ | sort -r | head -n 1)
 cp skale-network/releases/mainnet/IMA/$STABLE_IMA_VERSION/mainnet/abi.json data/ima_mainnet.json
 rm -r --interactive=never skale-network/
+rm -r --interactive=never venv/
