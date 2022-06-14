@@ -14,7 +14,7 @@ function camelToSnakeCase(str: string) {
 }
 
 async function getMarionette() {
-    const predeployed = await getAbi("data/predeployed.json");
+    const predeployed = await parseJson("data/predeployed.json");
     return new ethers.Contract(
         predeployed["marionette_address"],
         predeployed["marionette_abi"]
@@ -25,7 +25,7 @@ async function getMultiSigWallet(globalOptions: OptionValues) {
     const privateKey = process.env[`PRIVATE_KEY_${globalOptions.account}`];
     const provider = new ethers.providers.JsonRpcProvider(process.env.ENDPOINT);
     const signer = new ethers.Wallet(privateKey).connect(provider);
-    const predeployed = await getAbi("data/predeployed.json");
+    const predeployed = await parseJson("data/predeployed.json");
     return new ethers.Contract(
         predeployed["multi_sig_wallet_address"],
         predeployed["multi_sig_wallet_abi"],
@@ -33,22 +33,46 @@ async function getMultiSigWallet(globalOptions: OptionValues) {
     );
 }
 
-async function getAbi(filepath: string) {
+async function parseJson(filepath: string) {
     const rootDir = path.resolve("./");
     const abiFileName = path.join(rootDir, filepath);
     const abi = JSON.parse(await fs.readFile(abiFileName, "utf-8"));
     return abi;
 }
 
+function concatTransactions(transactions: string[]) {
+    return "0x" + transactions.map( (transaction) => {
+        if (transaction.startsWith("0x")) {
+            return transaction.slice(2);
+        } else {
+            return transaction;
+        }
+    }).join("");
+}
+
+const multisendAbi = [{
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "transactions",
+        "type": "bytes"
+      }
+    ],
+    "name": "multiSend",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+}]
+
 async function getDestinationContract(contractName: string, options: OptionValues): Promise<Contract> {
     let destinationContractAddress: string;
     let destinationContractAbi: any;
     if (options.custom) {
-        const deployed = await getAbi("data/" + process.env.ABI);
+        const deployed = await parseJson("data/" + process.env.ABI);
         destinationContractAddress = deployed[`${camelToSnakeCase(contractName)}_address`];
         destinationContractAbi = deployed[`${camelToSnakeCase(contractName)}_abi`];
     } else {
-        const predeployed = await getAbi("data/predeployed.json");
+        const predeployed = await parseJson("data/predeployed.json");
         destinationContractAddress = predeployed[`${camelToSnakeCase(contractName)}_address`];
         destinationContractAbi = predeployed[`${camelToSnakeCase(contractName)}_abi`];
     }
@@ -80,10 +104,10 @@ function showLogs(receipt: any) {
 async function getTypes(contractName: string, functionName: string, options: OptionValues) {
     let destinationContractAbi: any;
     if (options.custom) {
-        const deployed = await getAbi("data/" + process.env.ABI);
+        const deployed = await parseJson("data/" + process.env.ABI);
         destinationContractAbi = deployed[`${camelToSnakeCase(contractName)}_abi`];
     } else {
-        const predeployed = await getAbi("data/predeployed.json");
+        const predeployed = await parseJson("data/predeployed.json");
         destinationContractAbi = predeployed[`${camelToSnakeCase(contractName)}_abi`];
     }
     const types: Array<string> = [];
@@ -126,7 +150,7 @@ async function main() {
         .action(async (schainName, contract, func, params) => {
             const marionette = await getMarionette();
             const destinationContract = await getDestinationContract(contract, globalOptions);
-            const postOutgoingMessageAbi = await getAbi("data/ima_mainnet.json");
+            const postOutgoingMessageAbi = await parseJson("data/ima_mainnet.json");
             const postOutgoingMessageInterface = new ethers.utils.Interface(postOutgoingMessageAbi["message_proxy_mainnet_abi"]);
             const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
             const encodedData = postOutgoingMessageInterface.encodeFunctionData(
@@ -144,10 +168,37 @@ async function main() {
                     ])
                 ]
             );
-            console.log(encodedData)
+            console.log(encodedData);
         });
 
-        program
+    program
+        .command('encodeUpgrade')
+        .argument('<schainName>', "Destination schain name")
+        .argument('<multiSendAddress>', "SafeMock address on schain")
+        .description('Returns encoded data for interaction with schain through gnosis safe on mainnet')
+        .action(async (schainName, multiSendAddress) => {
+            const marionette = await getMarionette();
+            const postOutgoingMessageAbi = await parseJson("data/ima_mainnet.json");
+            const postOutgoingMessageInterface = new ethers.utils.Interface(postOutgoingMessageAbi["message_proxy_mainnet_abi"]);
+            const multisendInterface = new ethers.utils.Interface(multisendAbi);
+            const transactions = await parseJson("data/transactions.json");
+            const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
+            const encodedData = postOutgoingMessageInterface.encodeFunctionData(
+                "postOutgoingMessage",
+                [
+                    schainHash,
+                    marionette.address,
+                    ethers.utils.defaultAbiCoder.encode(["address", "uint", "bytes"], [
+                        multiSendAddress,
+                        0,
+                        multisendInterface.encodeFunctionData("multiSend", [ concatTransactions(transactions) ])
+                    ])
+                ]
+            );
+            console.log(encodedData);
+        });
+
+    program
         .command('encodeDataWithoutIMA')
         .argument('<contract>', "Destination contract that you wanna call")
         .argument('<func>', "Function that you wanna call on the destination contract")
@@ -155,12 +206,11 @@ async function main() {
         .description('Returns encoded data for interaction with schain through gnosis safe on mainnet')
         .action(async (contract, func, params) => {
             const destinationContract = await getDestinationContract(contract, globalOptions);
-            const predeployed = await getAbi("data/predeployed.json");
             const encodedData = destinationContract.interface.encodeFunctionData(
                  func,
                  params
             );
-            console.log(encodedData)
+            console.log(encodedData);
         });
 
     program
