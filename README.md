@@ -8,6 +8,8 @@ Optional variables:
 - `PRIVATE_KEY_<number>` - Owner of the wallet, where `<number>` should be less or equal 50
 - `ABI` - Filename of the custom abi, must be in `data/` folder
 
+If you clone this repo instead of using the releases, please run `./scripts/prepare.sh` to generate the necessary pre-deployment.json file.
+
 
 ## CLI Usage
 
