@@ -4,7 +4,7 @@
 
 Go to [releases](https://github.com/skalenetwork/multisigwallet-cli/releases) and take the latest version of the project. Download the `multisigwallet-cli.zip` and unpack the archive. 
 
-or clone the repo and run `./scripts/prepare.sh` this will add the lates .json files (ABIs) needed to execute multisig cli commands. 
+Or clone the repo and run `./scripts/prepare.sh` this will add the latest .json files (ABIs) needed to execute multisig cli commands. 
 
 Run `yarn install` and setup `.env`
 
