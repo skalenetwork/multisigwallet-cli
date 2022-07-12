@@ -90,7 +90,7 @@ Optional arguments:
 
 Usage example:
 ```bash
-npx msig submitTransaction DepoymentController addToWhitelist <ethereum-address>
+npx msig submitTransaction ConfigController addToWhitelist <ethereum-address>
 ```
 
 ### SubmitTransactionWithData
