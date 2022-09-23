@@ -282,7 +282,7 @@ async function main() {
                     ),
                     { gasLimit: 3000000 }
                 )).wait();
-            } else if (contract == "Marionette" && func == "sendEth") {
+            } else if (contract == "Marionette" && func == "sendSFuel") {
                 receipt = await (await multiSigWallet.submitTransaction(
                     marionette.address,
                     params[1],
