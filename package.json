@@ -17,7 +17,7 @@
     "@types/node": "^16.11.12",
     "commander": "^9.4.0",
     "dotenv": "^16.0.2",
-    "ethers": "^5.5.2",
+    "ethers": "^5.7.1",
     "hardhat": "2.11.2",
     "ts-node": "^10.9.1",
     "typechain": "^6.1.0",
