@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -e
 
 function _create_venv {
     ls /usr/bin/python* | grep "python$1" > /dev/null
