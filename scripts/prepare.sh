@@ -9,6 +9,8 @@ function _create_venv {
     return 0
 }
 
+ls /usr/bin/python*
+
 versions=('3.7' '3.8' '3.9' '3.10', '3.11')
 
 for version in ${versions[@]}
