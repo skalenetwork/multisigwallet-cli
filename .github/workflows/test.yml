@@ -4,19 +4,10 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
-
     - name: Install project
       run: yarn install
     - name: Build
       run: |
-        export BRANCH=${GITHUB_REF##*/}
-        echo "Branch $BRANCH"
-        export VERSION=$(bash ./scripts/calculate_version.sh)
-        echo "Version $VERSION"
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        ( test $BRANCH = "stable" || test $BRANCH = "master" && export PRERELEASE=false ) || export PRERELEASE=true
-        echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
         bash ./scripts/prepare.sh

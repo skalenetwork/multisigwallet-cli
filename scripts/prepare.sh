@@ -3,14 +3,11 @@
 set -e
 
 function _create_venv {
-    echo $1
     if ls /usr/bin/python* | grep "python$1" > /dev/null; then
         python$1 -m venv venv
     fi
     return 0
 }
-
-ls /usr/bin/python*
 
 versions=('3.7' '3.8' '3.9' '3.10' '3.11')
 
