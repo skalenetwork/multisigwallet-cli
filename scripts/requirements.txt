@@ -3,5 +3,5 @@ etherbase-predeployed==1.1.0a42
 marionette-predeployed==2.0.0a31
 multisigwallet-predeployed==1.1.0b0
 context-predeployed==1.0.0b0
-filestorage-predeployed==1.1.0b2
+filestorage-predeployed==1.1.0a8
 config-controller-predeployed==1.0.1b0
