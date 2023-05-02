@@ -4,6 +4,7 @@ set -e
 
 function _create_venv {
     if ls /usr/bin/python* | grep "python$1" > /dev/null; then
+        echo $1
         python$1 -m venv venv
     fi
     return 0
