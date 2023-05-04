@@ -10,8 +10,7 @@ from multisigwallet_predeployed import MULTISIGWALLET_ADDRESS
 from etherbase_predeployed import ETHERBASE_ADDRESS
 from filestorage_predeployed import FILESTORAGE_ADDRESS
 from config_controller_predeployed import CONFIG_CONTROLLER_ADDRESS
-from ima_predeployed.addresses import PROXY_ADMIN_ADDRESS, \
-                            MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, \
+from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, \
                             KEY_STORAGE_ADDRESS, \
                             ETH_ERC20_ADDRESS, \
                             COMMUNITY_LOCKER_ADDRESS, \
@@ -22,10 +21,12 @@ from ima_predeployed.addresses import PROXY_ADMIN_ADDRESS, \
                             TOKEN_MANAGER_LINKER_ADDRESS, \
                             TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS
 
-
+PROXY_ADMIN_ADDRESS = '0xd2aAa00000000000000000000000000000000000'
 resources = {
+    'predeployed_generator': {
+        'ProxyAdmin': PROXY_ADMIN_ADDRESS
+    },
     'ima_predeployed': {
-        'ProxyAdmin': PROXY_ADMIN_ADDRESS,
         'MessageProxyForSchain': MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,
         'KeyStorage': KEY_STORAGE_ADDRESS,
         'CommunityLocker': COMMUNITY_LOCKER_ADDRESS,
@@ -64,7 +65,10 @@ def generate_abi():
         for contract_name in contracts:
             contract_address = contracts[contract_name]
             snake_contract_name = camel_to_snake_case(contract_name)
-            contract_json = resource_stream(package, f'artifacts/{contract_name}.json').read().decode()
+            if (contract_name == 'ProxyAdmin'):
+                contract_json = resource_stream(package, f'openzeppelin/artifacts/{contract_name}.json').read().decode()
+            else:
+                contract_json = resource_stream(package, f'artifacts/{contract_name}.json').read().decode()
             contract_abi = json.loads(contract_json)['abi']
             abi[snake_contract_name + '_address'] = contract_address
             abi[snake_contract_name + '_abi'] = contract_abi
