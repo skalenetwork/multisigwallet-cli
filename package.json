@@ -14,7 +14,7 @@
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@typechain/hardhat": "^3.0.0",
     "@types/mocha": "^10.0.7",
-    "@types/node": "^18.11.18",
+    "@types/node": "^20.14.12",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "ethers": "^5.7.2",
