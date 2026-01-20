@@ -4,10 +4,7 @@ import os
 import re
 import json
 import sys
-try:
-    from importlib.resources import files
-except ImportError:
-    from importlib_resources import files
+from pkg_resources import resource_stream
 from marionette_predeployed import MARIONETTE_ADDRESS
 from multisigwallet_predeployed import MULTISIGWALLET_ADDRESS
 from etherbase_predeployed import ETHERBASE_ADDRESS
@@ -69,9 +66,9 @@ def generate_abi():
             contract_address = contracts[contract_name]
             snake_contract_name = camel_to_snake_case(contract_name)
             if (contract_name == 'ProxyAdmin'):
-                contract_json = files(package).joinpath(f'openzeppelin/artifacts/{contract_name}.json').read_text()
+                contract_json = resource_stream(package, f'openzeppelin/artifacts/{contract_name}.json').read().decode()
             else:
-                contract_json = files(package).joinpath(f'artifacts/{contract_name}.json').read_text()
+                contract_json = resource_stream(package, f'artifacts/{contract_name}.json').read().decode()
             contract_abi = json.loads(contract_json)['abi']
             abi[snake_contract_name + '_address'] = contract_address
             abi[snake_contract_name + '_abi'] = contract_abi
