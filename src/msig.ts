@@ -199,6 +199,33 @@ async function main() {
         });
 
     program
+        .command('encodeUpgradeLegacy')
+        .argument('<schainName>', "Destination schain name")
+        .action(async (schainName) => {
+            const marionette = await getMarionette();
+            const postOutgoingMessageAbi = await parseJson("data/ima_mainnet.json");
+            const postOutgoingMessageInterface = new ethers.utils.Interface(postOutgoingMessageAbi["message_proxy_mainnet_abi"]);
+            const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
+            const transactions = await parseJson("data/transactions.json");
+            for (let transaction of transactions) {
+                const encodedData = postOutgoingMessageInterface.encodeFunctionData(
+                    "postOutgoingMessage",
+                    [
+                        schainHash,
+                        marionette.address,
+                        ethers.utils.defaultAbiCoder.encode(["address", "uint", "bytes"], [
+                            transaction.to,
+                            0,
+                            transaction.data
+                        ])
+                    ]
+                );
+                console.log(encodedData);
+            }
+
+        });
+
+    program
         .command('encodeDataWithoutIMA')
         .argument('<contract>', "Destination contract that you wanna call")
         .argument('<func>', "Function that you wanna call on the destination contract")
