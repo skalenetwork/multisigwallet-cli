@@ -61,7 +61,7 @@ resources = {
 def camel_to_snake_case(contract_name):
     return re.sub(r'(?<!^)(?=[A-Z])', '_', contract_name).lower()
 
-    
+
 def generate_abi():
     abi = {}
     for package, contracts in resources.items():
@@ -75,7 +75,7 @@ def generate_abi():
             contract_abi = json.loads(contract_json)['abi']
             abi[snake_contract_name + '_address'] = contract_address
             abi[snake_contract_name + '_abi'] = contract_abi
-        
+
     abi_filename = os.path.join(os.path.dirname(__file__), '../data/predeployed.json')
     with open(abi_filename, 'w') as f:
         json.dump(abi, f)
