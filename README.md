@@ -11,6 +11,7 @@ Run `yarn install` and setup `.env`
 Optional variables:
 - `PRIVATE_KEY_<number>` - Owner of the wallet, where `<number>` should be less or equal 50
 - `ABI` - Filename of the custom abi, must be in `data/` folder
+- `LEDGER_PATH` - Default derivation path for `--ledger` (defaults to `44'/60'/0'/0/0`)
 
 If you clone this repo instead of using the releases, please run `./scripts/prepare.sh` to generate the necessary pre-deployment.json file.
 
@@ -20,6 +21,17 @@ If you clone this repo instead of using the releases, please run `./scripts/prep
 ### Global options
 - `-a, --account <number>` - Account number from which the transaction should be performed, by default it's 1. The account is associated with a private key in `.env`
 - `--custom` - For custom abi, set filepath to ABI into `.env`
+- `--ledger` - Sign transactions with a Ledger device instead of `PRIVATE_KEY_<number>`
+- `--ledger-path <path>` - Derivation path of the Ledger account, by default `$LEDGER_PATH` or `44'/60'/0'/0/0`
+
+### Ledger
+
+Connect the Ledger over USB, unlock it and open the Ethereum app. MultiSigWallet calls can't be clear-signed, so enable **Blind signing** in the Ethereum app settings. Each transaction has to be confirmed on the device. With `--ledger`, `PRIVATE_KEY_<number>` is not needed.
+
+```bash
+npx msig --ledger confirmTransaction 5
+npx msig --ledger --ledger-path "44'/60'/1'/0/0" submitTransaction ConfigController addToWhitelist 0x...
+```
 
 
 ### EncodeData
@@ -63,7 +75,7 @@ Allows to recharge the sFUEL balance of the MultiSigWallet contract
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Required arguments:
 -  `<amount>` -     Amount of sFUEL in wei
@@ -78,7 +90,7 @@ npx msig submitTransaction [options] <contract> <func> [params...]
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Required arguments:
 
@@ -102,7 +114,7 @@ Allows an owner to submit and confirm a transaction with custom data.
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Required arguments:
 -  `<contractAddress>` -  Destination contract that you wanna call
@@ -117,7 +129,7 @@ Allows an owner to confirm a transaction.
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Required arguments:
 -  `<transactionId>` - Transaction id
@@ -132,7 +144,7 @@ Allows an owner to revoke a confirmation for a transaction.
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Required arguments:
 -  `<transactionId>` - Transaction id
@@ -147,7 +159,7 @@ Allows you to execute a confirmed transaction.
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Required arguments:
 -  `<transactionId>` - Transaction id
@@ -162,7 +174,7 @@ Returns array with owner addresses, which confirmed transaction.
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Required arguments:
 -  `<transactionId>` - Transaction id
@@ -177,7 +189,7 @@ Returns number of confirmations of a transaction.
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Required arguments:
 -  `<transactionId>` - Transaction id
@@ -192,7 +204,7 @@ Returns the confirmation status of transactions. If transaction ID was provided,
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Optional arguments:
 -  `[transactionId]` - Transaction id
@@ -206,7 +218,7 @@ Returns list of owners.
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 ### GetBalance
 ```bash
@@ -217,7 +229,7 @@ Returns the sFUEL balance of address.
 
 Required variables:
 - `ENDPOINT` - Endpoint of the SKALE chain
-- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet)
+- `PRIVATE_KEY_1` - Originatior private key (owner of the MultiSigWallet), not needed with `--ledger`
 
 Required arguments:
 - `<address>` -     The address of which to return the sFUEL balance

@@ -21,10 +21,125 @@ async function getMarionette() {
     );
 }
 
-async function getMultiSigWallet(globalOptions: OptionValues) {
+const DEFAULT_LEDGER_PATH = "44'/60'/0'/0/0";
+
+// Signs with a Ledger device over USB. The device is opened lazily, so commands
+// that only read state never touch it.
+export class LedgerSigner extends ethers.Signer {
+    readonly path: string;
+    readonly provider: ethers.providers.Provider;
+    private eth?: Promise<any>;
+    private address?: Promise<string>;
+
+    constructor(path: string, provider?: ethers.providers.Provider) {
+        super();
+        this.path = path;
+        ethers.utils.defineReadOnly(this, "provider", provider);
+    }
+
+    private getEth(): Promise<any> {
+        if (!this.eth) {
+            this.eth = (async () => {
+                const { default: TransportNodeHid } = await import("@ledgerhq/hw-transport-node-hid");
+                const { default: Eth } = await import("@ledgerhq/hw-app-eth");
+                let transport: any;
+                try {
+                    transport = await TransportNodeHid.create();
+                } catch (e) {
+                    throw new Error(`Cannot connect to Ledger: ${e.message ?? e}. ` +
+                        "Make sure the device is plugged in, unlocked and the Ethereum app is open.");
+                }
+                return new Eth(transport);
+            })();
+        }
+        return this.eth;
+    }
+
+    getAddress(): Promise<string> {
+        if (!this.address) {
+            this.address = this.getEth()
+                .then(eth => eth.getAddress(this.path))
+                .then(result => ethers.utils.getAddress(result.address));
+        }
+        return this.address;
+    }
+
+    async signMessage(message: ethers.utils.Bytes | string): Promise<string> {
+        const bytes = typeof message === "string" ? ethers.utils.toUtf8Bytes(message) : message;
+        const eth = await this.getEth();
+        console.log("Please confirm the message on your Ledger...");
+        const sig = await eth.signPersonalMessage(this.path, ethers.utils.hexlify(bytes).slice(2));
+        return ethers.utils.joinSignature({ r: "0x" + sig.r, s: "0x" + sig.s, v: sig.v });
+    }
+
+    async signTransaction(transaction: ethers.providers.TransactionRequest): Promise<string> {
+        const tx = await ethers.utils.resolveProperties(transaction);
+        const from = await this.getAddress();
+        if (tx.from != null && ethers.utils.getAddress(tx.from) !== from) {
+            throw new Error(`Transaction "from" ${tx.from} does not match Ledger address ${from}`);
+        }
+        const unsignedTx: ethers.utils.UnsignedTransaction = {
+            to: tx.to,
+            nonce: tx.nonce != null ? ethers.BigNumber.from(tx.nonce).toNumber() : undefined,
+            gasLimit: tx.gasLimit,
+            gasPrice: tx.gasPrice,
+            data: tx.data,
+            value: tx.value,
+            chainId: tx.chainId,
+            type: tx.type,
+            accessList: tx.accessList,
+            maxFeePerGas: tx.maxFeePerGas,
+            maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
+        };
+        // serializeTransaction rejects keys that don't belong to the tx type, even undefined ones.
+        for (const key of Object.keys(unsignedTx)) {
+            if (unsignedTx[key] == null) {
+                delete unsignedTx[key];
+            }
+        }
+        const eth = await this.getEth();
+        console.log("Please confirm the transaction on your Ledger...");
+        // No clear-signing resolution: MultiSigWallet calls are signed blindly,
+        // so "Blind signing" must be enabled in the Ledger Ethereum app settings.
+        const sig = await eth.signTransaction(
+            this.path,
+            ethers.utils.serializeTransaction(unsignedTx).slice(2),
+            null
+        );
+        // Ledger may truncate `v` for large chain ids (e.g. SKALE chains), so pick
+        // the recovery bit that actually yields our address.
+        for (const recoveryParam of [0, 1]) {
+            const signed = ethers.utils.serializeTransaction(unsignedTx, {
+                r: "0x" + sig.r,
+                s: "0x" + sig.s,
+                recoveryParam,
+            });
+            if (ethers.utils.parseTransaction(signed).from === from) {
+                return signed;
+            }
+        }
+        throw new Error("Ledger returned a signature that does not match its address");
+    }
+
+    connect(provider: ethers.providers.Provider): LedgerSigner {
+        return new LedgerSigner(this.path, provider);
+    }
+}
+
+function getSigner(globalOptions: OptionValues, provider: ethers.providers.Provider): ethers.Signer {
+    if (globalOptions.ledger) {
+        return new LedgerSigner(globalOptions.ledgerPath, provider);
+    }
     const privateKey = process.env[`PRIVATE_KEY_${globalOptions.account}`];
+    if (!privateKey) {
+        throw new Error(`PRIVATE_KEY_${globalOptions.account} is not set. Set it in .env or use --ledger`);
+    }
+    return new ethers.Wallet(privateKey).connect(provider);
+}
+
+async function getMultiSigWallet(globalOptions: OptionValues) {
     const provider = new ethers.providers.JsonRpcProvider(process.env.ENDPOINT);
-    const signer = new ethers.Wallet(privateKey).connect(provider);
+    const signer = getSigner(globalOptions, provider);
     const predeployed = await parseJson("data/predeployed.json");
     return new ethers.Contract(
         predeployed["multi_sig_wallet_address"],
@@ -129,6 +244,12 @@ async function main() {
         .option(
             "--custom",
             "For custom abi, set filepath to ABI into .env"
+        )
+        .option('--ledger', "Sign transactions with a Ledger device instead of PRIVATE_KEY_<account>")
+        .option(
+            '--ledger-path <path>',
+            "BIP-32 derivation path of the Ledger account",
+            process.env.LEDGER_PATH || DEFAULT_LEDGER_PATH
         )
         .allowUnknownOption()
         .parse()
@@ -276,9 +397,8 @@ async function main() {
         .argument('<amount>', "Amount of money in wei")
         .description("Allows to recharge the balance of the MultiSigWallet contract")
         .action(async (amount) => {
-            const privateKey = process.env[`PRIVATE_KEY_${globalOptions.account}`];
             const provider = new ethers.providers.JsonRpcProvider(process.env.ENDPOINT);
-            const signer = new ethers.Wallet(privateKey).connect(provider);
+            const signer = getSigner(globalOptions, provider);
             const multiSigWallet = await getMultiSigWallet(globalOptions);
             await (await signer.sendTransaction({
                 to: multiSigWallet.address,
