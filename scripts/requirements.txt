@@ -1,4 +1,4 @@
-setuptools
+setuptools<81  # predeployed packages import pkg_resources, removed in setuptools 81
 ima-predeployed==2.3.0b3
 etherbase-predeployed==1.1.0b3
 marionette-predeployed==2.0.0b2

@@ -3,13 +3,13 @@
 set -e
 
 function _create_venv {
-    if ls /usr/bin/python* | grep "python$1" > /dev/null; then
+    if command -v "python$1" > /dev/null; then
         python$1 -m venv venv
     fi
     return 0
 }
 
-versions=('3.9' '3.10' '3.11' '3.12' '3.13')
+versions=('3.9' '3.10' '3.11' '3.12' '3.13' '3.14')
 
 for version in ${versions[@]}
 do
